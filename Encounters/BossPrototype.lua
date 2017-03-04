@@ -42,6 +42,8 @@ local function DeepInit (obj, ...)
   return root
 end
 
+local GetPlayerUnit = GameLib.GetPlayerUnit
+
 ------------------------------------------------------------------------------
 -- Encounter Prototype.
 ------------------------------------------------------------------------------
@@ -482,8 +484,8 @@ end
 
 function EncounterPrototype:OnEnable()
   self:CopySettings()
-  -- TODO: Redefine this part.
   self.tDispelInfo = {}
+  self:InitPlayerInfo()
   self:CallIfExists("SetupOptions")
   self:CallIfExists("OnBossEnable")
 end
@@ -493,6 +495,21 @@ function EncounterPrototype:OnDisable()
   self:CancelAllTimers()
   self:CallIfExists("OnWipe")
   self.tDispelInfo = nil
+  self:DeletePlayerInfo()
+end
+
+function EncounterPrototype:InitPlayerInfo()
+  self.player = {
+    unit = GetPlayerUnit()
+  }
+  if self.player.unit then
+    self.player.name = RaidCore:ReplaceNoBreakSpace(self.player.unit:GetName())
+    self.player.id = self.player.unit:GetId()
+  end
+end
+
+function EncounterPrototype:DeletePlayerInfo()
+  self.player = nil
 end
 
 function EncounterPrototype:RegisterEnglishLocale(Locales)
