@@ -296,19 +296,19 @@ local function PollUnitBuffs(tMyUnit)
       if tNew.nCount ~= current.nCount then
         tBuffs[nIdBuff].nCount = tNew.nCount
         tBuffs[nIdBuff].fTimeRemaining = tNew.fTimeRemaining
-        ManagerCall(RaidCore.E.BUFF_UPDATE, nId, current.nSpellId, tNew.nCount, tNew.fTimeRemaining, sName, current.unitCaster)
+        ManagerCall(RaidCore.E.BUFF_UPDATE, nId, current.nSpellId, tNew.nCount, tNew.fTimeRemaining, sName, current.unitCaster, tMyUnit.tUnit)
       end
       -- Remove this entry for second loop.
       tNewBuffs[nIdBuff] = nil
     else
       tBuffs[nIdBuff] = nil
-      ManagerCall(RaidCore.E.BUFF_REMOVE, nId, current.nSpellId, sName, current.unitCaster)
+      ManagerCall(RaidCore.E.BUFF_REMOVE, nId, current.nSpellId, sName, current.unitCaster, tMyUnit.tUnit)
     end
   end
 
   for nIdBuff, tNew in next, tNewBuffs do
     tBuffs[nIdBuff] = tNew
-    ManagerCall(RaidCore.E.BUFF_ADD, nId, tNew.nSpellId, tNew.nCount, tNew.fTimeRemaining, sName, tNew.unitCaster)
+    ManagerCall(RaidCore.E.BUFF_ADD, nId, tNew.nSpellId, tNew.nCount, tNew.fTimeRemaining, sName, tNew.unitCaster, tMyUnit.tUnit)
   end
 end
 
@@ -357,7 +357,7 @@ local function DelayFireTrackedDebuff(tTrackedBuff)
   if tTrackedBuff.sEvent == RaidCore.E.BUFF_ADD or tTrackedBuff.sEvent == RaidCore.E.BUFF_UPDATE then
     sEvent = RaidCore.E.BUFF_REMOVE
   end
-  ManagerCall(sEvent, tTrackedBuff.nUnitId, tTrackedBuff.nSpellId, tTrackedBuff.sName, tTrackedBuff.tBuff.unitCaster)
+  ManagerCall(sEvent, tTrackedBuff.nUnitId, tTrackedBuff.nSpellId, tTrackedBuff.sName, tTrackedBuff.tBuff.unitCaster, tTrackedBuff.tBuff.unitTarget)
   DeleteTrackedBuff(tTrackedBuff.nUnitId, tTrackedBuff.nSpellId)
 end
 
@@ -365,7 +365,7 @@ function RaidCore:CI_OnBuffAdded(tUnit, tBuff)
   local sEvent, nUnitId, nSpellId, sName = self:CI_OnBuff(tUnit, tBuff, RaidCore.E.BUFF_ADD, RaidCore.E.DEBUFF_ADD)
   if nUnitId then
     UpdateTrackedBuff(sEvent, nUnitId, nSpellId, sName, tBuff)
-    ManagerCall(sEvent, nUnitId, nSpellId, tBuff.nCount, tBuff.fTimeRemaining, sName, tBuff.unitCaster)
+    ManagerCall(sEvent, nUnitId, nSpellId, tBuff.nCount, tBuff.fTimeRemaining, sName, tBuff.unitCaster, tUnit)
   end
 end
 
@@ -373,7 +373,7 @@ function RaidCore:CI_OnBuffUpdated(tUnit, tBuff)
   local sEvent, nUnitId, nSpellId, sName = self:CI_OnBuff(tUnit, tBuff, RaidCore.E.BUFF_UPDATE, RaidCore.E.DEBUFF_UPDATE)
   if nUnitId then
     UpdateTrackedBuff(sEvent, nUnitId, nSpellId, sName, tBuff)
-    ManagerCall(sEvent, nUnitId, nSpellId, tBuff.nCount, tBuff.fTimeRemaining, sName, tBuff.unitCaster)
+    ManagerCall(sEvent, nUnitId, nSpellId, tBuff.nCount, tBuff.fTimeRemaining, sName, tBuff.unitCaster, tUnit)
   end
 end
 
@@ -381,7 +381,7 @@ function RaidCore:CI_OnBuffRemoved(tUnit, tBuff)
   local sEvent, nUnitId, nSpellId, sName = self:CI_OnBuff(tUnit, tBuff, RaidCore.E.BUFF_REMOVE, RaidCore.E.DEBUFF_REMOVE)
   if nUnitId then
     DeleteTrackedBuff(nUnitId, nSpellId)
-    ManagerCall(sEvent, nUnitId, nSpellId, sName, tBuff.unitCaster)
+    ManagerCall(sEvent, nUnitId, nSpellId, sName, tBuff.unitCaster, tUnit)
   end
 end
 
